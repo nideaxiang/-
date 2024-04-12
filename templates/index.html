@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI飞花令游戏</title>
+    <style>
+        /* 样式可以根据你的喜好进行自定义 */
+        body {
+            background-image: url(../static/imgs/ctbg01.jpg);
+            background-size: cover;
+            background-position: top;
+            font-family: '宋体', 'SimSun', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+    max-width: 800px;
+    margin: 100px auto;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.2);
+    display: flex; /* 使用 Flex 布局 */
+    flex-direction: column; /* 将子元素垂直排列 */
+    justify-content: center; /* 水平居中 */
+}
+
+
+        #chat-box {
+            border: 1px solid #ccc;
+            height: 300px;
+            overflow-y: scroll;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 10px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        .user-message {
+    background-color: #b3d9ff; /* 蓝色背景 */
+    color: #333; /* 字体颜色 */
+    text-align: right; /* 文字右对齐 */
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+    max-width: 40%; /* 设置消息框最大宽度 */
+    margin-left: auto; /* 将用户消息框推至右侧 */
+}
+
+.ai-message {
+    background-color: #e6e6e6; /* 灰色背景 */
+    color: #333; /* 字体颜色 */
+    text-align: left; /* 文字左对齐 */
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+    max-width: 50%; /* 设置消息框最大宽度 */
+    margin-right: auto; /* 将 AI 消息框推至左侧 */
+}
+
+
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        #chat-form {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #user-input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-right: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #b71c1c; /* 使用红色作为按钮背景色 */
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-family: '宋体', 'SimSun', sans-serif; /* 使用宋体字体 */
+            font-size: 18px; /* 设置字体大小 */
+        }
+
+        button:hover {
+            background-color: #8b0000; /* 鼠标悬停时深红色 */
+        }
+
+        #start-game-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: #cd853f; /* 使用秋褐色作为按钮背景色 */
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-family: '宋体', 'SimSun', sans-serif; /* 使用宋体字体 */
+    font-size: 18px; /* 设置字体大小 */
+    margin-top: 20px; /* 调整按钮与上方内容的间距 */
+}
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>欢迎来到飞花令大比拼</h1>
+		<h1>亲爱的月华探险家</h1>
+        <div id="chat-box"></div>
+        <form id="chat-form">
+            <input type="text" id="user-input" placeholder="请输入与月相关的诗词...(ง •_•)ง加油">
+            <button type="submit">发送</button>
+        </form>
+        <button id="start-game-btn">开始游戏</button> <!-- 新增的按钮 -->
+    </div>
+    <script>
+        const chatBox = document.getElementById('chat-box');
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+        const startGameBtn = document.getElementById('start-game-btn'); // 获取新添加的按钮
+
+        // 处理表单提交事件
+        chatForm.addEventListener('submit', async function(event) {
+            event.preventDefault(); // 阻止表单默认提交行为
+
+            const userMessage = userInput.value; // 获取用户输入的消息
+            displayMessage(userMessage, '探险家'); // 将用户消息显示在聊天框中
+
+            // 发送用户消息给后端处理
+            const aiResponse = await sendMessageToBackend(userMessage);
+
+            // 将AI响应显示在聊天框中
+            displayMessage(aiResponse, '飞花君');
+
+            // 清空输入框
+            userInput.value = '';
+        });
+
+        // 处理开始游戏按钮点击事件
+        startGameBtn.addEventListener('click', async function() {
+            // 向后端发送指定的消息
+            const startGameMessage = "让我们开启以“月”为主题词的飞花令游戏吧";
+            const aiResponse = await sendMessageToBackend(startGameMessage);
+
+            // 将后端返回的响应显示在聊天框中
+            displayMessage(aiResponse, '飞花君');
+        });
+
+        // 将消息显示在聊天框中
+        function displayMessage(message, sender) {
+            const messageElement = document.createElement('div');
+            messageElement.textContent = `${sender}: ${message}`;
+            messageElement.classList.add(sender === '探险家' ? 'user-message' : 'ai-message');
+            chatBox.appendChild(messageElement);
+        }
+
+        // 向后端发送消息并获取响应
+        async function sendMessageToBackend(message) {
+            // 发送消息给后端的URL，根据你的Flask应用程序的URL进行修改
+            const url = '/api';
+
+            // 使用fetch发送POST请求
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message })
+            });
+
+            // 解析并返回后端的响应
+            const data = await response.json();
+            return data.response;
+        }
+    </script>
+</body>
+</html>
